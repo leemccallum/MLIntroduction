@@ -52,7 +52,7 @@ This figure shows the simplest Neural Network we can create. It has only one nod
 <img src="images/SingleNeuron.png">
 </p>
 
-`Y`:The  output of the neuron, calculated as a function of the sum on inputs multiplied by weight plus the bias: 
+`Y`:The output of the neuron, calculated as a function of the sum on inputs multiplied by weight plus the bias: 
 <p align="center">Y = f(W<sub>1</sub>.X<sub>1</sub> + W<sub>2</sub>.X<sub>2</sub> + b)</p>
 
 `b`: The bias, allows the network to find a good constant value to add to the input of the neuron.
@@ -66,25 +66,6 @@ This figure shows the simplest Neural Network we can create. It has only one nod
 
 Given that `W` is just a floating-point number, then `Y` is just a linear function of the input. In real-life scenarios it's not common to be able to represent cases as a linear function. In reality, most of the time it is a nonlinear function, this is why we need to set function `f`.
 
-### Activation Functions
-
-_Note that these functions can take any real number as input._
-
-**Sigmoid:** The output of sigmoid is a value between 0 and 1.
-<p align="center"> 
-<img src="images/sigmoid.png"  height="300" width="200">
-</p>
-
-**tanh:** The output is a value is between -1 and 1.
-<p align="center"> 
-<img src="images/tanh.png"  height="300" width="200">
-</p>
-
-**Relu:** The output is Max(0,x), provides the same non-linearity as sigmoid but with [better performance]().
-<p align="center"> 
-<img src="images/relu.png"  height="300" width="200">
-</p>
-
 ### Training
 
 We now know what a Single-Neuron Neural Network is, and how it calculates its output. Now the question is: how can it find the right values for `W`<sub>`n`</sub> and `b` to produce the desired output?
@@ -96,6 +77,25 @@ The process of finding the correct values for `W`<sub>`n`</sub> and `b` is calle
 3. Measure the error value using the calculated `Y(s)` and the expected `Y(s)`.
 4. Use what is called an optimization function to update `W`<sub>`n`</sub> and ` b`.
 5. Start over again using the new `W`<sub>`n`</sub> values.
+
+### Activation Functions
+
+_Note that these functions can take any real number as input._
+
+**Sigmoid:** The output of sigmoid is a value between 0 and 1.
+<p align="center"> 
+<img src="images/sigmoid.png"  height="300" width="200">
+</p>
+
+**tanh:** The output is a value between -1 and 1.
+<p align="center"> 
+<img src="images/tanh.png"  height="300" width="200">
+</p>
+
+**Relu:** The output is Max(0,x), provides the same non-linearity as sigmoid but with [better performance]().
+<p align="center"> 
+<img src="images/relu.png"  height="300" width="200">
+</p>
 
 ### Loss Functions
 Loss functions measure how well our model works on the given training data. It's a positive number and the lower it is, the better we modeled our sample data. There are many types of loss functions, to list a few:
@@ -124,13 +124,13 @@ Optimization functions are used to minimize the loss of the Neural Network; ther
 **Adaptive Moment Estimation (Adam):** Computes adaptive learning rates for each parameter. Adam works well in practice and compares favorably to other adaptive learning-method algorithms
 
 
-### Running Python code
+## 3. Approximating a linear function with Single-Neuron Neural Network
+
+### Setup: Running Python code
 
    In the next sections/sessions we will be building our own models using TensorFlow in Python, so it is a good idea to consider what will you use as an IDE. There are many options, but it really comes down to personal preference. I will share mine, first obvious one is Juptyer notebooks, you can install the server on your machine and start using it (i do not do that), or you can use any of the freely hosted ones. My favorite is [google colaboratory](https://colab.research.google.com "google colaboratory"); I like it because it is quite accessible and make it very easy to hit the ground running. Also, it gives you access to a free GPU, which will become very important when we start building more complicated models that take time to train (with the GPU, the training process will be much faster). The only thing I do not like much about notebooks is the debugging experience, that is why I usually set up a local IDE as well to make it easier for me to debug my code. There are many options, for example Visual Studio Code but I prefer to use Eclipse with PyDev plugin installed to enable Python development. I will do my best to make sure the sample code in the tutorial can be just copied and pasted in google colaboratory.
 
-## 3. Approximating a linear function with Single-Neuron Neural Network
-
-
+### Simple Task
 
 We saw what a Single-Neuron NN looks like, now how can we use it to do a simple task?  
 
@@ -155,7 +155,7 @@ model = Sequential();
 model.add(Dense(units=1,input_dim=1))
 
 # Build our model and setting which optimizer we will use and which loss function 
-model.compile(optimizer="sgd", loss = "mean_squared_error")
+model.compile(optimizer="sgd", loss = "mean_squared_error", metrics=['acc'])
 ```
 
 Our model is ready to be trained, but first we need to prepare our training data. The training data will be 2 arrays: one representing `X` and one representing the expected output for each of the `X`s.
@@ -181,7 +181,7 @@ When you run the code samples from above, you should see an output similar to th
 
 <img src="images/epochs.png"  height="300">  
 
-By the time you reach epoch 500, the accuracy should be 1, which means the model is 100% accurate!
+By the time you reach epoch 500, the accuracy should be almost 1, which means the model is almost 100% accurate!
 
 Let's try our model with some value it hasn't seen before:
 
@@ -230,20 +230,20 @@ xs = np.random.choice(np.arange(-3,3,.01),500)
 ys = xs**2
 ```
 
-we will leave every thing else the same  and re-run our training. What we get ?
+We will leave every thing else the same and re-run our training. What will we get?
 
-Your will notice that the loss value does not really improve, and the accuracy is 0, basically the model is failing to approximate the function 
+Your will notice that the loss value does not really improve, and the accuracy is 0.  Basically the model is failing to approximate the function.
 
-screenshot of the training output
+Screenshot of the training output:
 
 <img src="images/bad_approx.png"  height="300">
 
-we can visualize the approximation our model made versus the expected values using the following code: 
+We can visualize the approximation our model made versus the expected values using the following code: 
 
 
 ```python
 import matplotlib.pyplot as plt
-x_test=np.linspace(-1,1,100)
+x_test=np.linspace(-3,3,100)
 y_test=x_test**2
 results = model.predict(x_test)
 plt.plot(x_test,results,c='r')
@@ -267,7 +267,7 @@ The solution to this is a Multi-Neuron model.  This is not much different from w
 
 Every thing we discussed in the single neuron discussion is still the same, the only difference is that we have now more than one neuron and we use the output of each neuron as an input to our output neuron. 
 
-in the diagram we introduced few new terms because of the nature of the Multi-Neuron model
+In the diagram we introduced few new terms because of the nature of the Multi-Neuron model.
 
 
 ### input layer
@@ -279,12 +279,12 @@ in the diagram we introduced few new terms because of the nature of the Multi-Ne
 ### output layer
    This is the collection of all the output nodes, in our examples so far we only had one output node
 
-let's apply this to our quadratic example, so instead of using a single neuron let's have a model setup like this 
-input layer: 1 node
-hidden layers: i hidden layer contains 20 nodes, and activation function of type Relu
-output layer: 1 node
+Let's apply this to our quadratic example, so instead of using a single neuron let's have a model setup like this 
+- input layer: 1 node
+- hidden layers: i hidden layer contains 20 nodes, and activation function of type Relu
+- output layer: 1 node
 
-replace the model code we had initially with this code
+Replace the model code we had initially with this code.
 
 ```python
 from tensorflow.keras.layers import Dense
@@ -310,11 +310,11 @@ To see the full code working, you can either get it form the github folder and r
 
 ## 5. Assignment (XOR)
 
-   XOR, data for 2 variables looks very simple but it is really none linear. The data will look like that 
+   XOR, data for 2 variables looks very simple but it is really non-linear. The data looks like this:
    
 <img src="images/xor_table.png"  height="200"> 
 
-If we visualize it , it will look like that 
+If we visualize it, it will look like this:
    
 <img src="images/xor.png"  height="400">
 
