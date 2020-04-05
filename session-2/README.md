@@ -35,7 +35,7 @@
    It will say, this is a pie_chart 
    
    First, we need to think about is what will be the input to our model? In all the cases we have seen so far the input was quite simple it was either 1 or 2 simple numbers, but in this case, what would it be?
-	We can not just feed the image as an image to the model for training, we need to represent it as numbers. The easiest way is to feed in the pixel values as the input to the model. Basically, if we have a true-color image we can represent every pixel using 3 integer values to represent the RGB value of the pixel. In other words, if�our image is W width and H height in pixels, we represent it as W*H*3 numbers. This way we can feed it to the Neural network and start the training process.
+	We can not just feed the image as an image to the model for training, we need to represent it as numbers. The easiest way is to feed in the pixel values as the input to the model. Basically, if we have a true-color image we can represent every pixel using 3 integer values to represent the RGB value of the pixel. In other words, if our image is W width and H height in pixels, we represent it as W*H*3 numbers. This way we can feed it to the Neural network and start the training process.
    
    The following diagram shows how this will look for an image that is 28 X 28 pixels
 
@@ -45,11 +45,11 @@
    
 ## 2. Loading images training set using TensorFlow
    In the last section, we discussed how to present images as input to a neural network, let's talk a bit about training sets and testing sets.
-   What we have been doing so far, is called supervised learning, which is training a model by giving it a set of inputs and the expected outputs. Then the model can learn from these input/outputs the rules we need to produce the correct output, These inputs/outputs are called the training set because it had been used to train the model. But how can we check how good is our model?
+   What we have been doing so far, is called supervised learning, which is training a model by giving it a set of inputs and the expected outputs. Then the model can learn from these input/outputs the rules we need to produce the correct output. These inputs/outputs are called the training set because it had been used to train the model. But how can we check how good our model is?
    
    If we use the same inputs we used for the training to validate it, this will be a misleading measure of the quality of the model, since the model have seen these inputs already and knows what should be the output, this can be used only to measure the training accuracy. But in real use-cases, the model will receive inputs it did not see before. This brings us to the testing data set, which is a set of inputs and their outputs that the model did not see during training. we use this testing dataset to measure the model accuracy to see if it is really able to recognize input it did not see before.
    
-   OK, so we now know we need a training set and testing test. Let's see how we prepare the folders containing our images. We start by creating this folder structure
+   OK, so we now know we need a training set and testing set. Let's see how we prepare the folders containing our images. We start by creating this folder structure
    
 <img src="images/smallData.png" height="150" width="150">
 
@@ -67,7 +67,7 @@ train_generator = train_data_generator.flow_from_directory("../smallData/train",
                                                            target_size=(100,100))
 ```
 
-What did we do in this code? first step we created the ImageDataGenerator, when you create an ImageDataGenerator you can pass it parameters to control how it works, for example, you can pass it a rescale factor that will be multiplied by all pixel values (to make all values range between 0 and 1), you can also pass it a pre-processing function that will be called on all inputs this can be your own function or one of the tensorflow.keras functions, i found that using `` tensorflow.keras.applications.mobilenet.preprocess_input `` function usually produce good results for me, that is why you will find me passing it in the code when I create the image generator.
+What did we do in this code? first step we created the ImageDataGenerator, when you create an ImageDataGenerator you can pass it parameters to control how it works.  For example, you can pass it a rescale factor that will be multiplied by all pixel values (to make all values range between 0 and 1), you can also pass it a pre-processing function that will be called on all inputs this can be your own function or one of the tensorflow.keras functions, i found that using `` tensorflow.keras.applications.mobilenet.preprocess_input `` function usually produce good results for me, that is why you will find me passing it in the code when I create the image generator.
 
 Then we called the method flow_from_directory to create our train data generator, this method receives the folder to load the images from, target size it will scale the images to fit (in this case we used 100 X 100), and the batch size, the batch size is basically the number of images to be yielded from the generator per batch.
 
@@ -89,7 +89,7 @@ from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.nn import relu,softmax
 from tensorflow.keras.optimizers import SGD
 model = Sequential()
-model.add(Flatten(input_shape=(100,100,3))
+model.add(Flatten(input_shape=(100,100,3)))
 model.add(Dense(1024,activation=relu))
 model.add(Dense(512,activation=relu))
 model.add(Dense(2,activation=softmax))
@@ -163,7 +163,7 @@ This might sound a bit much, but the more you use these the more it will be clea
 Calculating these numbers, is a task that we  will do many times to verify our models, so it will be a good idea to have a utility method that does that and we can call it any time we need to:
  
 ```python
-   from sklearn.metrics import confusion_matrix, classification_report   
+   from sklearn.metrics import classification_report   
    def test(generator, model):
         predictions = model.predict_generator(generator)
         row_index = predictions.argmax(axis=1)
@@ -171,7 +171,7 @@ Calculating these numbers, is a task that we  will do many times to verify our m
         target_names = generator.class_indices.keys()
         print(classification_report(generator.classes, row_index, target_names=target_names))
 ```
-   In the previous code we create a method that receive a data generator (like the one we created before) and a model then it display the numbers we discussed for each class in the model. 
+   In the previous code we create a method that receives a data generator (like the one we created before) and a model then it display the numbers we discussed for each class in the model. 
 
 The First line is just using the model to predict all the values for our testing data by calling ``predict_generator`` on our model and passing it the generator.
 
