@@ -20,7 +20,7 @@
 
 ## 1. What are we going to build
 
-   In session 1, we saw how to approximate linear and quadratic functions using Neural networks. This was a simple enough project to get introduced to Tensorflow and how to use it to build Neural Network models. Now it is time to move to a more fun project, a project that will be very hard (if not impossible to do with classic programming). Let's build a system when given an image of a chart it can tell us what type of chart is in the image for example, If the system receives this image: 
+   In session 1, we saw how to approximate linear and quadratic functions using Neural networks. This was a simple enough project to get introduced to Tensorflow and how to use it to build Neural Network models. Now it is time to move to a more fun project. A project that will be very hard (if not impossible to do with classic programming). If you face any troubles as you follow along, be sure to look at the reference solutin here (https://github.com/mohmiim/MLIntroduction/blob/master/session-2/Session_2_first.ipynb).  Let's build a system when given an image of a chart it can tell us what type of chart is in the image for example, if the system receives this image: 
 
 <p align="center"> 
 <img src="images/bar.png" height="350" width="650">
@@ -58,45 +58,84 @@
 Next step is to load the images in these folders and prepare to be fed into our model, Tensorflow has a great utility called ``ImageDataGenerator``, we can use it to load our data the following code shows how this can be done 
 
 ```python
+import tensorflow as tf
+
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications.mobilenet import preprocess_input
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.optimizers import SGD
 
-train_data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
-train_generator = train_data_generator.flow_from_directory("../smallData/train",
-                                                           batch_size=32,
-                                                           target_size=(100,100))
+# https://github.com/mohmiim/MLIntroduction/raw/master/data/data.zip
+# https://github.com/mohmiim/MLIntroduction/raw/master/data/smallData.zip
+
+import os
+
+!wget --no-check-certificate \
+    https://github.com/mohmiim/MLIntroduction/raw/master/data/smallData.zip \
+    -O /tmp/smallData.zip
+
+import zipfile
+def unzip(file,target):
+  zip_ref = zipfile.ZipFile(file, 'r')
+  zip_ref.extractall(target)
+  zip_ref.close()
+
+unzip("/tmp/smallData.zip","/tmp")
+
+if os.path.exists('/tmp/smallData'):
+    print(os.listdir('/tmp/smallData'))
 ```
 
-What did we do in this code? first step we created the ImageDataGenerator, when you create an ImageDataGenerator you can pass it parameters to control how it works.  For example, you can pass it a rescale factor that will be multiplied by all pixel values (to make all values range between 0 and 1), you can also pass it a pre-processing function that will be called on all inputs this can be your own function or one of the tensorflow.keras functions, i found that using `` tensorflow.keras.applications.mobilenet.preprocess_input `` function usually produce good results for me, that is why you will find me passing it in the code when I create the image generator.
+This sets up our code dependencies, downloads and unzips the data set and lists the directory structure, which should be:
+['test', 'train', '.gitignore']
+
+```python
+#default sizes
+Image_Width = 100
+Image_Height = 100
+Image_Depth = 3
+targetSize = (Image_Width,Image_Height)
+targetSize_withdepth = (Image_Width,Image_Height,Image_Depth)
+CLASSES_COUNT = 2;
+epochs = 50
+
+#define the sub folders for both training and test
+training = os.path.join("/tmp/smallData",'train')
+
+#now the easiest way to load data is to use the ImageDataGenerator
+train_data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
+train_generator = train_data_generator.flow_from_directory(training,
+                                                           batch_size=95,
+                                                           target_size=targetSize,
+                                                           #seed=12
+                                                           )
+```
+
+What did we do in this code? First step we created the ImageDataGenerator, when you create an ImageDataGenerator you can pass it parameters to control how it works.  For example, you can pass it a rescale factor that will be multiplied by all pixel values (to make all values range between 0 and 1), you can also pass it a pre-processing function that will be called on all inputs this can be your own function or one of the tensorflow.keras functions, i found that using `` tensorflow.keras.applications.mobilenet.preprocess_input `` function usually produce good results for me, that is why you will find me passing it in the code when I create the image generator.
 
 Then we called the method flow_from_directory to create our train data generator, this method receives the folder to load the images from, target size it will scale the images to fit (in this case we used 100 X 100), and the batch size, the batch size is basically the number of images to be yielded from the generator per batch.
+
+This should find 95 images belonging to 2 classes.
 
 
 * Dealing with files in google colab
 
 Since we are starting to deal with files, we need a place to load them from. If you did read the section in session 1 about running python code, I mentioned that I use both google colab and eclipse pydev for my python development. If you are using eclipse or a similar local IDE then loading or saving is no problem since you have access to your HDD and you can load/save as you like. But if you are using google colab what should you do?
 
-This [link](https://colab.research.google.com/notebooks/io.ipynb "IO colab") shows all the different options you have to deal with files in colab, I tend to use the google drive option.
-
+This [link](https://colab.research.google.com/notebooks/io.ipynb "IO colab") shows all the different options you have to deal with files in colab, I tend to use the google drive option and have illustrated how to source from a .zip at a url above.
 
 ## 3. Designing a Neural network model for chart recognition
 
    We prepared our training data, now we can go ahead and create the model we will try to train, this will be no different than what we did before in session one with one exception that the model will be a bit bigger (a lot bigger actually)
    
   ```python
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.nn import relu,softmax
-from tensorflow.keras.optimizers import SGD
 model = Sequential()
-model.add(Flatten(input_shape=(100,100,3)))
-model.add(Dense(1024,activation=relu))
-model.add(Dense(512,activation=relu))
-model.add(Dense(2,activation=softmax))
-
-model.compile(optimizer=SGD(),
-               loss='categorical_crossentropy',
-               metrics=['accuracy'])
+model.add(Flatten(input_shape=targetSize_withdepth))
+model.add(Dense(1024,activation='relu'))
+model.add(Dense(512,activation='relu'))
+model.add(Dense(CLASSES_COUNT,activation='softmax'))
+model.compile(optimizer='sgd',loss='categorical_crossentropy',metrics=['accuracy'])
    ```
    
    You will notice that I am using more nodes in each layer than before, and I set my input to be an array of (100,100,3) as we explained before, but neural net Dense layer expects a vector, that is why we use the layer type Flatten to convert our input to a vector.
@@ -112,9 +151,8 @@ model.compile(optimizer=SGD(),
 
 As you can see this model has 31M parameters to train. To train the model use this code
 
-
 ```python
-model.fit_generator(generator=train_generator,epochs=500)
+model.fit(train_generator,epochs=epochs,steps_per_epoch=20)
 ```
    Since we are using ImageDataGenerator to load our data, we use the fit_generator method instead of the fit method, which is the same as the fit method we saw before but it receives a generator as the input instead of the typical array of input and output.
    
@@ -196,8 +234,9 @@ Let's create a generator using our testing data
 
 ```python
 test_data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
-test_generator = test_data_generator.flow_from_directory("../smallData/test",
+test_generator = test_data_generator.flow_from_directory("/tmp/smallData/test",
                                                          target_size=(100,100),
+                                                         batch_size=37,
                                                          shuffle=False)
 ```
 It is similar code to what we did with the training set, but we pass it the folder for the testing set instead of the training folder, and we set shuffle to False since we do not want to shuffle or testing set.
@@ -303,7 +342,7 @@ Try to go back and modify the code we did so far to create a model that recogniz
 
 We did go a long way in this session, instead of just approximating a simple Linear function, to building a model that recognizes chart type form an image. But there are a few things we need to think about. The quality of our model is not great, considering that we are trying to recognize only 2 types of charts. We know we are suffering from Overfitting issue that we need to deal with. We could try to increase our training set size, but i am  not doing that for now and starting with small training set in the first place on purpose, Because having more labeled samples is not an easy task, and we will learn in session 4 of easy tricks we can do to deal with this issue. Other Options is to add more nodes to our layers or increase the number of layers, but our model already contains 31M parameters to trains (when you save it if you check the file size it will 100MB+), maybe this is an indication that we should take a different approach. In session 3 we will learn a new layer type called Convolution that will help. This is important because Machine learning is an iterative process, and we need to feel comfortable to understand our model and its limitations, so we can get back re-adjust and try again.
 
-All this being said if you have been following so far you should be proud. You did learn quite a few concepts and built machine learning models, analyzed their results and was able to reason about them. Great Job. �   
+All this being said if you have been following so far you should be proud. You did learn quite a few concepts and built machine learning models, analyzed their results and was able to reason about them. Great Job!
 
 
 
