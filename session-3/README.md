@@ -25,13 +25,13 @@ We went through how single neuron and multi neuron (multilayers as well) neural 
 <img src="images/dense.png" >
 </p>
 
-But Why is that important to understand, The fully connected nature of the Dense layer impacts how many parameters we need to train during the training phase, and it impacts how long training will take and how big it the model? For example, if we have a neural network that accepts 5 inputs and has 3 hidden layers 10 nodes each and one output layer of 2 nodes. The number of parameters in this networks will be N = 5 \* 10 + 10 \* 10 + 10 \* 10 + 10 \* 2 = 270 (this calculation does not consider the extra B node).
+Why is that important to understand? The fully connected nature of the Dense layer impacts how many parameters we need to train during the training phase, and it impacts how long training will take and how big the model is. For example, if we have a neural network that accepts 5 inputs and has 3 hidden layers 10 nodes each and one output layer of 2 nodes. The number of parameters in this networks will be N = 5 \* 10 + 10 \* 10 + 10 \* 10 + 10 \* 2 = 270 (this calculation does not consider the extra B node).
 
-Can we reduce this, so we can create very complex networks without having 100s of millions of parameters to train ?!! Welcome to convolution neural networks or CNN.
+This is a simple example of 10 nodes per layer, but more typically there are hundreds of thousands of nodes per layer (recall in the previous session, a simple 100x100 color image resulted in 30k parameters for the first layer).  Can we reduce this, so we can create very complex networks without having 100s of millions of parameters to train?!! Convolution Neural Networks help address this issue.
 
 ## 2. What is Convolutional Neural Network
 
-Convolution Neural Network is a special kind of neural network that had been proven to work very well with images. For example recognizing faces, animals, different types of objects and so on.  
+Convolution Neural Network (CNN) is a special kind of neural network that had been proven to work very well with images. For example recognizing faces, animals, different types of objects and so on.  
 
 To understand how CNN works we need to first understand what is the Convolution operation. Convolution operation is applying a specific filter to the image to extract specific feature by considering small squares of the input data and maintain their relationship. Let's assume that our image is I and the Filter is K how can we apply the convolution operation  ?
 
@@ -87,7 +87,7 @@ model.add(MaxPool2D((2,2)))
 
 ## 4. Why Convolutional Neural Network
 
-One of the main benefits of CNN is the reduction in the numbers of parameters compared to the similar Dense Layers. This allows us to create much more complex networks and still be able to train them in a reasonable amount of time and using reasonable hardware. For example, consider a use case where our input is an RGB image of 100 pixels by 100 pixels, this means our input size is 3\*100\*100 = 30000, LEt see how many parameters would we have if we create a Dense layer of 1000 Node vs Conv layer of 64 filters each filter 3\*3.
+One of the main benefits of CNN is the reduction in the numbers of parameters compared to the similar Dense Layers. This allows us to create much more complex networks and is still able to train them in a reasonable amount of time and use reasonable hardware. For example, consider a use case where our input is an RGB image of 100 pixels by 100 pixels, this means our input size is 3\*100\*100 = 30000, Let's see how many parameters we would have if we created a Dense layer of 1000 Node vs Conv layer of 64 filters each filter 3\*3.
 Dense : 30000\*1000 = 30000000 Parameters
 Conv : 64\*3\*3\*3 = 1728 Parameters. 
 
@@ -95,7 +95,7 @@ The reduction in number of parameters will have big  impact on how long it take
 
 ## 5. Using Convolutional Neural Network for chart recognition
 
-Now we are ready to put it all to work, let's see how can we apply CNN to our chart recognition problem. The change is actually quite easy we will use everything we learned so far. Training set loading, model training, saving/loading, and testing will not change at all. the only change will be the model itself and how we build.  
+Now we are ready to put it all to work. Let's see how can we apply CNN to our chart recognition problem. The change is actually quite easy we will use everything we learned so far. Training set loading, model training, saving/loading, and testing will not change at all. The only change will be the model itself and how we build.  
 
 
 Replace the model building code we had in session2 with this code
@@ -103,18 +103,19 @@ Replace the model building code we had in session2 with this code
 ~~~~{.python}
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D
 model = Sequential()
-model.add(Conv2D(128,(3,3),input_shape=targetSize_withdepth,activation=relu))
+model.add(Conv2D(128,(3,3),input_shape=targetSize_withdepth,activation='relu'))
 model.add(MaxPool2D((2,2)))
-model.add(Conv2D(64,(3,3),activation=relu))
+model.add(Conv2D(64,(3,3),activation='relu'))
 model.add(MaxPool2D((2,2)))
-model.add(Conv2D(32,(3,3),activation=relu))
+model.add(Conv2D(32,(3,3),activation='relu'))
 model.add(MaxPool2D((2,2)))
 model.add(Flatten())
-model.add(Dense(512,activation=relu))
+model.add(Dense(512,activation='relu'))
 model.add(Dense(5,activation='softmax'))
+model.summary()
 ~~~~
 
-The rest of the code should stay pretty much the same if you check the output of model.summary() you will notice that this model has 1,737,317 parameters, compared to the 31M+ parameters in the model we created in the previous session.
+If you check the output (of model.summary()) you will notice that this model has 1,737,317 parameters, compared to the 31M+ parameters in the model we created in the previous session.
 
 <p align="center"> 
 <img src="images/model.png" height="550" width="200" >
